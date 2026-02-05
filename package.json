@@ -1,0 +1,50 @@
+{
+  "name": "segerea-sda-smartpro",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "node server/index.js",
+    "migrate": "node server/migrate.js",
+    "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
+    "start": "pm2 start ecosystem.config.cjs",
+    "stop": "pm2 delete all",
+    "restart": "pm2 restart all",
+    "logs": "pm2 logs"
+  },
+  "dependencies": {
+    "@google/genai": "^1.38.0",
+    "@types/file-saver": "^2.0.7",
+    "@types/sql.js": "^1.4.9",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.1",
+    "file-saver": "^2.0.5",
+    "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
+    "localforage": "^1.10.0",
+    "lucide-react": "^0.563.0",
+    "pg": "^8.17.2",
+    "pm2": "^6.0.14",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^7.13.0",
+    "recharts": "^3.7.0",
+    "sql.js": "^1.13.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@google/gemini-cli": "^0.27.0",
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

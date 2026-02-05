@@ -1,0 +1,189 @@
+{
+  "members": [
+    {
+      "id": "M1",
+      "fullname": "Alice Johnson",
+      "phone": "555-0101",
+      "email": "alice@example.com",
+      "address": "123 Maple St, Northside",
+      "passportphotourl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+      "status": "Active",
+      "assignedcommunity": "Northside Fellowship",
+      "joindate": "2023-01-15"
+    },
+    {
+      "id": "M2",
+      "fullname": "Bob Brown",
+      "phone": "555-0102",
+      "email": "bob@example.com",
+      "address": "456 Oak Rd, West End",
+      "passportphotourl": "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150",
+      "status": "Active",
+      "assignedcommunity": "Northside Fellowship",
+      "joindate": "2023-02-10"
+    },
+    {
+      "id": "M3",
+      "fullname": "Charlie Davis",
+      "phone": "555-0103",
+      "email": "charlie@example.com",
+      "address": "789 Pine Ave, Downtown",
+      "passportphotourl": null,
+      "status": "Visitor",
+      "assignedcommunity": "West End Grace",
+      "joindate": "2024-03-05"
+    },
+    {
+      "id": "M4",
+      "fullname": "Diana Prince",
+      "phone": "555-0104",
+      "email": "diana@example.com",
+      "address": "101 Hero Way, Metro",
+      "passportphotourl": null,
+      "status": "Active",
+      "assignedcommunity": "Downtown Bridge",
+      "joindate": "2022-11-20"
+    },
+    {
+      "id": "M5",
+      "fullname": "Ethan Hunt",
+      "phone": "555-0105",
+      "email": "ethan@example.com",
+      "address": "202 Spy Ln, Secret",
+      "passportphotourl": null,
+      "status": "Inactive",
+      "assignedcommunity": "Downtown Bridge",
+      "joindate": "2021-06-12"
+    }
+  ],
+  "communities": [
+    {
+      "id": "C1",
+      "name": "Northside Fellowship",
+      "hostname": "John Doe",
+      "location": "123 Maple St",
+      "meetingday": "Tuesday",
+      "maxcapacity": 20
+    },
+    {
+      "id": "C2",
+      "name": "West End Grace",
+      "hostname": "Sarah Smith",
+      "location": "456 Oak Rd",
+      "meetingday": "Wednesday",
+      "maxcapacity": 15
+    },
+    {
+      "id": "C3",
+      "name": "Downtown Bridge",
+      "hostname": "Mark Wilson",
+      "location": "789 Pine Ave",
+      "meetingday": "Thursday",
+      "maxcapacity": 25
+    }
+  ],
+  "events": [
+    {
+      "id": "E1",
+      "name": "Sabbath Service",
+      "date": "2024-05-04",
+      "type": "Worship",
+      "responsiblecommunity": "General"
+    },
+    {
+      "id": "E2",
+      "name": "Sabbath Service",
+      "date": "2024-05-11",
+      "type": "Worship",
+      "responsiblecommunity": "General"
+    },
+    {
+      "id": "E3",
+      "name": "Sabbath Service",
+      "date": "2024-05-18",
+      "type": "Worship",
+      "responsiblecommunity": "General"
+    },
+    {
+      "id": "E4",
+      "name": "Youth Night",
+      "date": "2024-05-15",
+      "type": "Special",
+      "responsiblecommunity": "Downtown Bridge"
+    }
+  ],
+  "attendance": [
+    {
+      "id": 1,
+      "date": "2024-05-04",
+      "eventname": "Sabbath Service",
+      "membername": "Alice Johnson",
+      "status": "Present"
+    },
+    {
+      "id": 2,
+      "date": "2024-05-04",
+      "eventname": "Sabbath Service",
+      "membername": "Bob Brown",
+      "status": "Present"
+    },
+    {
+      "id": 3,
+      "date": "2024-05-04",
+      "eventname": "Sabbath Service",
+      "membername": "Charlie Davis",
+      "status": "Present"
+    },
+    {
+      "id": 4,
+      "date": "2024-05-11",
+      "eventname": "Sabbath Service",
+      "membername": "Alice Johnson",
+      "status": "Present"
+    },
+    {
+      "id": 5,
+      "date": "2024-05-11",
+      "eventname": "Sabbath Service",
+      "membername": "Bob Brown",
+      "status": "Absent"
+    },
+    {
+      "id": 6,
+      "date": "2024-05-18",
+      "eventname": "Sabbath Service",
+      "membername": "Alice Johnson",
+      "status": "Present"
+    }
+  ],
+  "contributions": [
+    {
+      "id": "T1",
+      "date": "2024-05-05",
+      "membername": "Alice Johnson",
+      "amount": 100,
+      "type": "Tithe"
+    },
+    {
+      "id": "T2",
+      "date": "2024-05-05",
+      "membername": "Bob Brown",
+      "amount": 50,
+      "type": "Offering"
+    },
+    {
+      "id": "T3",
+      "date": "2024-05-12",
+      "membername": "Alice Johnson",
+      "amount": 100,
+      "type": "Tithe"
+    },
+    {
+      "id": "T4",
+      "date": "2024-04-20",
+      "membername": "Diana Prince",
+      "amount": 250,
+      "type": "Tithe"
+    }
+  ]
+}
