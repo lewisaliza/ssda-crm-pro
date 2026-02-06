@@ -35,6 +35,11 @@ export interface Event {
   date: string;
   type: string;
   responsibleCommunity: string;
+  location?: string;
+  startDate?: string;
+  startTime?: string;
+  endDate?: string;
+  endTime?: string;
 }
 
 export enum AttendanceStatus {

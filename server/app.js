@@ -280,7 +280,12 @@ app.get('/api/events', authenticateToken, async (req, res) => {
         name, 
         date, 
         type, 
-        responsiblecommunity as "responsibleCommunity" 
+        responsiblecommunity as "responsibleCommunity",
+        location,
+        startdate as "startDate",
+        starttime as "startTime",
+        enddate as "endDate",
+        endtime as "endTime"
       FROM events
     `);
         res.json(rows);
@@ -290,11 +295,11 @@ app.get('/api/events', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/events', authenticateToken, async (req, res) => {
-    const { id, name, date, type, responsibleCommunity } = req.body;
+    const { id, name, date, type, responsibleCommunity, location, startDate, startTime, endDate, endTime } = req.body;
     try {
         const { rows } = await query(
-            'INSERT INTO events (id, name, date, type, responsibleCommunity) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, date, type, responsiblecommunity as "responsibleCommunity"',
-            [id, name, date, type, responsibleCommunity]
+            'INSERT INTO events (id, name, date, type, responsibleCommunity, location, startDate, startTime, endDate, endTime) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, name, date, type, responsiblecommunity as "responsibleCommunity", location, startdate as "startDate", starttime as "startTime", enddate as "endDate", endtime as "endTime"',
+            [id, name, date, type, responsibleCommunity, location, startDate, startTime, endDate, endTime]
         );
         res.json(rows[0]);
     } catch (err) {
@@ -304,11 +309,11 @@ app.post('/api/events', authenticateToken, async (req, res) => {
 
 app.put('/api/events/:id', authenticateToken, async (req, res) => {
     const { id } = req.params;
-    const { name, date, type, responsibleCommunity } = req.body;
+    const { name, date, type, responsibleCommunity, location, startDate, startTime, endDate, endTime } = req.body;
     try {
         const { rows } = await query(
-            'UPDATE events SET name=$1, date=$2, type=$3, responsibleCommunity=$4 WHERE id=$5 RETURNING id, name, date, type, responsiblecommunity as "responsibleCommunity"',
-            [name, date, type, responsibleCommunity, id]
+            'UPDATE events SET name=$1, date=$2, type=$3, responsibleCommunity=$4, location=$5, startDate=$6, startTime=$7, endDate=$8, endTime=$9 WHERE id=$10 RETURNING id, name, date, type, responsiblecommunity as "responsibleCommunity", location, startdate as "startDate", starttime as "startTime", enddate as "endDate", endtime as "endTime"',
+            [name, date, type, responsibleCommunity, location, startDate, startTime, endDate, endTime, id]
         );
         res.json(rows[0]);
     } catch (err) {

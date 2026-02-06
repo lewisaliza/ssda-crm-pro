@@ -38,7 +38,12 @@ const createTables = async () => {
         name VARCHAR(255),
         date VARCHAR(50),
         type VARCHAR(50),
-        responsibleCommunity VARCHAR(255)
+        responsibleCommunity VARCHAR(255),
+        location VARCHAR(255),
+        startDate VARCHAR(50),
+        startTime VARCHAR(50),
+        endDate VARCHAR(50),
+        endTime VARCHAR(50)
       );
     `);
 

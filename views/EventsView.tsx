@@ -1,6 +1,10 @@
 
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, Plus, X, Edit2, Trash2, CalendarDays } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, MapPin, CheckCircle, Plus, X, Edit2, Trash2, CalendarDays, Download, FileSpreadsheet, FileText } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
 import { Event, AttendanceRecord, Member, AttendanceStatus } from '../types';
 
 interface EventsViewProps {
@@ -34,7 +38,12 @@ const EventsView: React.FC<EventsViewProps> = ({
     name: '',
     date: '',
     type: 'Worship',
-    responsibleCommunity: 'General'
+    responsibleCommunity: 'General',
+    location: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    endTime: ''
   });
 
   // Attendance State
@@ -44,10 +53,14 @@ const EventsView: React.FC<EventsViewProps> = ({
   });
 
   const [selectedDateFilter, setSelectedDateFilter] = useState('');
+  const [selectedEventFilter, setSelectedEventFilter] = useState('');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('');
 
   const filteredAttendance = attendance.filter(log => {
-    if (!selectedDateFilter) return true;
-    return log.date === selectedDateFilter;
+    const matchesDate = !selectedDateFilter || log.date === selectedDateFilter;
+    const matchesEvent = !selectedEventFilter || log.eventName === selectedEventFilter;
+    const matchesStatus = !selectedStatusFilter || log.status === selectedStatusFilter;
+    return matchesDate && matchesEvent && matchesStatus;
   }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const handleOpenEventModal = (event?: Event) => {
@@ -57,15 +70,26 @@ const EventsView: React.FC<EventsViewProps> = ({
         name: event.name,
         date: event.date,
         type: event.type,
-        responsibleCommunity: event.responsibleCommunity
+        responsibleCommunity: event.responsibleCommunity,
+        location: event.location || '',
+        startDate: event.startDate || event.date || '',
+        startTime: event.startTime || '',
+        endDate: event.endDate || '',
+        endTime: event.endTime || ''
       });
     } else {
       setEditingEvent(null);
+      const today = new Date().toISOString().split('T')[0];
       setEventFormData({
         name: '',
-        date: new Date().toISOString().split('T')[0],
+        date: today,
         type: 'Worship',
-        responsibleCommunity: 'General'
+        responsibleCommunity: 'General',
+        location: '',
+        startDate: today,
+        startTime: '',
+        endDate: today,
+        endTime: ''
       });
     }
     setIsEventModalOpen(true);
@@ -115,7 +139,52 @@ const EventsView: React.FC<EventsViewProps> = ({
     setActiveTab('attendance');
   };
 
+  const handleExport = (format: 'csv' | 'excel' | 'pdf') => {
+    if (filteredAttendance.length === 0) {
+      alert('No records to export');
+      return;
+    }
 
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `attendance_log_${timestamp}`;
+
+    if (format === 'excel') {
+      const worksheet = XLSX.utils.json_to_sheet(filteredAttendance.map(r => ({
+        Date: r.date,
+        Event: r.eventName,
+        Member: r.memberName,
+        Status: r.status
+      })));
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance");
+      XLSX.writeFile(workbook, `${filename}.xlsx`);
+    } else if (format === 'csv') {
+      const headers = ['Date', 'Event Name', 'Member Name', 'Status'];
+      const csvContent = [
+        headers.join(','),
+        ...filteredAttendance.map(r => [
+          r.date,
+          `"${r.eventName}"`,
+          `"${r.memberName}"`,
+          r.status
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      saveAs(blob, `${filename}.csv`);
+    } else if (format === 'pdf') {
+      const doc = new jsPDF();
+      doc.text(`Attendance Log - ${timestamp}`, 14, 15);
+
+      autoTable(doc, {
+        head: [['Date', 'Event Name', 'Member Name', 'Status']],
+        body: filteredAttendance.map(r => [r.date, r.eventName, r.memberName, r.status]),
+        startY: 20
+      });
+
+      doc.save(`${filename}.pdf`);
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -153,11 +222,15 @@ const EventsView: React.FC<EventsViewProps> = ({
               <div className="space-y-2 mb-6 flex-1">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <Clock size={16} />
-                  <span>{event.date} • 10:00 AM</span>
+                  <span>
+                    {event.startDate || event.date}
+                    {event.startTime ? ` • ${event.startTime}` : ''}
+                    {event.endTime ? ` - ${event.endTime}` : ''}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <MapPin size={16} />
-                  <span>Main Sanctuary</span>
+                  <span>{event.location || 'Main Sanctuary'}</span>
                 </div>
               </div>
               <button
@@ -224,27 +297,58 @@ const EventsView: React.FC<EventsViewProps> = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
                       <input
                         type="date"
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        value={eventFormData.date}
-                        onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })}
+                        value={eventFormData.startDate}
+                        onChange={(e) => setEventFormData({ ...eventFormData, startDate: e.target.value, date: e.target.value })}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
-                      <select
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Start Time</label>
+                      <input
+                        type="time"
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                        value={eventFormData.type}
-                        onChange={(e) => setEventFormData({ ...eventFormData, type: e.target.value })}
-                      >
-                        <option value="Worship">Worship</option>
-                        <option value="Fellowship">Fellowship</option>
-                        <option value="Outreach">Outreach</option>
-                        <option value="Special">Special</option>
-                      </select>
+                        value={eventFormData.startTime}
+                        onChange={(e) => setEventFormData({ ...eventFormData, startTime: e.target.value })}
+                      />
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">End Date</label>
+                      <input
+                        type="date"
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        value={eventFormData.endDate}
+                        onChange={(e) => setEventFormData({ ...eventFormData, endDate: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">End Time</label>
+                      <input
+                        type="time"
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        value={eventFormData.endTime}
+                        onChange={(e) => setEventFormData({ ...eventFormData, endTime: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                    <select
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      value={eventFormData.type}
+                      onChange={(e) => setEventFormData({ ...eventFormData, type: e.target.value })}
+                    >
+                      <option value="Worship">Worship</option>
+                      <option value="Fellowship">Fellowship</option>
+                      <option value="Outreach">Outreach</option>
+                      <option value="Special">Special</option>
+                    </select>
                   </div>
 
                   <div>
@@ -258,9 +362,23 @@ const EventsView: React.FC<EventsViewProps> = ({
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Location <span className="text-slate-400 font-normal">(Optional)</span></label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <input
+                        type="text"
+                        className="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g. Main Sanctuary"
+                        value={eventFormData.location}
+                        onChange={(e) => setEventFormData({ ...eventFormData, location: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
                   <button
                     onClick={handleSaveEvent}
-                    disabled={!eventFormData.name || !eventFormData.date}
+                    disabled={!eventFormData.name || !eventFormData.startDate || !eventFormData.startTime}
                     className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <CalendarDays size={18} />
@@ -354,7 +472,23 @@ const EventsView: React.FC<EventsViewProps> = ({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 flex-wrap">
+            <div className="relative">
+              <select
+                className="pl-3 pr-8 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white"
+                value={selectedEventFilter}
+                onChange={(e) => setSelectedEventFilter(e.target.value)}
+              >
+                <option value="">All Events</option>
+                {/* Use unique events from passed props */}
+                {events.map((e) => (
+                  <option key={e.id} value={e.name}>
+                    {e.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="relative">
               <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
@@ -364,16 +498,57 @@ const EventsView: React.FC<EventsViewProps> = ({
                 onChange={(e) => setSelectedDateFilter(e.target.value)}
               />
             </div>
-            {selectedDateFilter && (
+            <div className="relative">
+              <select
+                className="pl-3 pr-8 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-slate-700 bg-white"
+                value={selectedStatusFilter}
+                onChange={(e) => setSelectedStatusFilter(e.target.value)}
+              >
+                <option value="">All Statuses</option>
+                <option value={AttendanceStatus.PRESENT}>Present</option>
+                <option value={AttendanceStatus.ABSENT}>Absent</option>
+              </select>
+            </div>
+
+            {(selectedDateFilter || selectedEventFilter || selectedStatusFilter) && (
               <button
-                onClick={() => setSelectedDateFilter('')}
+                onClick={() => {
+                  setSelectedDateFilter('');
+                  setSelectedEventFilter('');
+                  setSelectedStatusFilter('');
+                }}
                 className="text-sm text-slate-500 hover:text-slate-700 underline"
               >
-                Clear Filter
+                Clear Filters
               </button>
             )}
-            <div className="ml-auto text-sm text-slate-500">
-              Showing {filteredAttendance.length} records
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-sm text-slate-500 mr-2">
+                Showing {filteredAttendance.length} records
+              </span>
+              <div className="flex bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+                <button
+                  onClick={() => handleExport('excel')}
+                  className="p-1.5 text-slate-600 hover:text-green-600 hover:bg-white rounded-md transition-all"
+                  title="Export Excel"
+                >
+                  <FileSpreadsheet size={16} />
+                </button>
+                <button
+                  onClick={() => handleExport('csv')}
+                  className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-white rounded-md transition-all"
+                  title="Export CSV"
+                >
+                  <FileText size={16} />
+                </button>
+                <button
+                  onClick={() => handleExport('pdf')}
+                  className="p-1.5 text-slate-600 hover:text-red-600 hover:bg-white rounded-md transition-all"
+                  title="Export PDF"
+                >
+                  <Download size={16} />
+                </button>
+              </div>
             </div>
           </div>
 
