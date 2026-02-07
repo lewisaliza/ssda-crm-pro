@@ -106,57 +106,57 @@ const MainLayout: React.FC = () => {
 
   const handleAddMember = async (newMember: Member) => {
     await DB.addMember(newMember);
-    setMembers(await DB.getMembers());
+    await refreshData();
   };
 
   const handleEditMember = async (updatedMember: Member) => {
     await DB.updateMember(updatedMember);
-    setMembers(await DB.getMembers());
+    await refreshData();
   };
 
   const handleDeleteMember = async (id: string) => {
     await DB.deleteMember(id);
-    setMembers(await DB.getMembers());
+    await refreshData();
   };
 
   const handleAddContribution = async (newContribution: Contribution) => {
     await DB.addContribution(newContribution);
-    setContributions(await DB.getContributions());
+    await refreshData();
   };
 
   const handleAddAttendance = async (newRecord: AttendanceRecord) => {
     await DB.addAttendance(newRecord);
-    setAttendance(await DB.getAttendance());
+    await refreshData();
   };
 
   const handleAddCommunity = async (newCommunity: Community) => {
     await DB.addCommunity(newCommunity);
-    setCommunities(await DB.getCommunities());
+    await refreshData();
   };
 
   const handleEditCommunity = async (updatedCommunity: Community) => {
     await DB.updateCommunity(updatedCommunity);
-    setCommunities(await DB.getCommunities());
+    await refreshData();
   };
 
   const handleDeleteCommunity = async (id: string) => {
     await DB.deleteCommunity(id);
-    setCommunities(await DB.getCommunities());
+    await refreshData();
   };
 
   const handleAddEvent = async (newEvent: Event) => {
     await DB.addEvent(newEvent);
-    setEvents(await DB.getEvents());
+    await refreshData();
   };
 
   const handleEditEvent = async (updatedEvent: Event) => {
     await DB.updateEvent(updatedEvent);
-    setEvents(await DB.getEvents());
+    await refreshData();
   };
 
   const handleDeleteEvent = async (id: string) => {
     await DB.deleteEvent(id);
-    setEvents(await DB.getEvents());
+    await refreshData();
   };
 
   if (!isDbReady) {
@@ -345,7 +345,7 @@ const MainLayout: React.FC = () => {
   );
 };
 
-const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
+const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
@@ -365,7 +365,7 @@ const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
 };
 
 // CheckAuth: If authenticated, redirect to dashboard. If not, show children (Login).
-const PublicOnly: React.FC<{ children: JSX.Element }> = ({ children }) => {
+const PublicOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) return null; // Or a spinner

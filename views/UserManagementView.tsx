@@ -22,6 +22,7 @@ const UserManagementView: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [error, setError] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     // Delete Modal State
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -73,6 +74,7 @@ const UserManagementView: React.FC = () => {
         e.preventDefault();
         setError('');
 
+        setIsSaving(true);
         try {
             if (editingUser) {
                 // Update
@@ -92,6 +94,8 @@ const UserManagementView: React.FC = () => {
             fetchUsers();
         } catch (err: any) {
             setError(err.message);
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -281,10 +285,11 @@ const UserManagementView: React.FC = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm"
+                                    disabled={isSaving}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <Save size={18} />
-                                    <span>{editingUser ? 'Save Changes' : 'Create User'}</span>
+                                    {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                                    <span>{isSaving ? 'Saving...' : (editingUser ? 'Save Changes' : 'Create User')}</span>
                                 </button>
                             </div>
                         </form>

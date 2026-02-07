@@ -25,6 +25,11 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       }
+    },
+    build: {
+      target: 'es2020',
+      minify: 'esbuild',
+      cssTarget: 'chrome61' // Wide compatibility
     }
   };
 });

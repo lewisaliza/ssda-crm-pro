@@ -11,10 +11,10 @@ interface EventsViewProps {
   events: Event[];
   attendance: AttendanceRecord[];
   members: Member[];
-  onAddAttendance: (record: AttendanceRecord) => void;
-  onAddEvent: (event: Event) => void;
-  onEditEvent: (event: Event) => void;
-  onDeleteEvent: (id: string) => void;
+  onAddAttendance: (record: AttendanceRecord) => Promise<void>;
+  onAddEvent: (event: Event) => Promise<void>;
+  onEditEvent: (event: Event) => Promise<void>;
+  onDeleteEvent: (id: string) => Promise<void>;
 }
 
 const EventsView: React.FC<EventsViewProps> = ({
@@ -95,21 +95,30 @@ const EventsView: React.FC<EventsViewProps> = ({
     setIsEventModalOpen(true);
   };
 
-  const handleSaveEvent = () => {
-    if (!eventFormData.name || !eventFormData.date) return;
+  const [isSavingEvent, setIsSavingEvent] = useState(false);
 
-    if (editingEvent) {
-      onEditEvent({
-        ...editingEvent,
-        ...eventFormData
-      });
-    } else {
-      onAddEvent({
-        id: `E${Date.now()}`,
-        ...eventFormData
-      });
+  const handleSaveEvent = async () => {
+    if (!eventFormData.name || !eventFormData.date) return;
+    setIsSavingEvent(true);
+    try {
+      if (editingEvent) {
+        await onEditEvent({
+          ...editingEvent,
+          ...eventFormData
+        });
+      } else {
+        await onAddEvent({
+          id: `E${Date.now()}`,
+          ...eventFormData
+        });
+      }
+      setIsEventModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save event:", error);
+      alert("Failed to save event. Please try again.");
+    } finally {
+      setIsSavingEvent(false);
     }
-    setIsEventModalOpen(false);
   };
 
   const handleOpenAttendance = (eventId: string) => {
@@ -117,26 +126,36 @@ const EventsView: React.FC<EventsViewProps> = ({
     setIsAttendanceModalOpen(true);
   };
 
-  const handleAddAttendance = () => {
+  const [isSavingAttendance, setIsSavingAttendance] = useState(false);
+
+  const handleAddAttendance = async () => {
     if (!newRecord.memberName || !selectedEventId) return;
+    setIsSavingAttendance(true);
 
-    const event = events.find(e => e.id === selectedEventId);
+    try {
+      const event = events.find(e => e.id === selectedEventId);
 
-    const record = {
-      date: event?.date || new Date().toISOString().split('T')[0],
-      eventName: event?.name || 'Unknown Event',
-      memberName: newRecord.memberName,
-      status: newRecord.status
-    };
+      const record = {
+        date: event?.date || new Date().toISOString().split('T')[0],
+        eventName: event?.name || 'Unknown Event',
+        memberName: newRecord.memberName,
+        status: newRecord.status
+      };
 
-    onAddAttendance(record);
-    setIsAttendanceModalOpen(false);
-    setNewRecord({
-      memberName: '',
-      status: AttendanceStatus.PRESENT
-    });
-    // Switch to logs tab to see the entry
-    setActiveTab('attendance');
+      await onAddAttendance(record);
+      setIsAttendanceModalOpen(false);
+      setNewRecord({
+        memberName: '',
+        status: AttendanceStatus.PRESENT
+      });
+      // Switch to logs tab to see the entry
+      setActiveTab('attendance');
+    } catch (error) {
+      console.error("Failed to add attendance:", error);
+      alert("Failed to add attendance. Please try again.");
+    } finally {
+      setIsSavingAttendance(false);
+    }
   };
 
   const handleExport = (format: 'csv' | 'excel' | 'pdf') => {
@@ -247,9 +266,9 @@ const EventsView: React.FC<EventsViewProps> = ({
                   <Edit2 size={14} /> Edit
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (window.confirm('Are you sure you want to delete this event?')) {
-                      onDeleteEvent(event.id);
+                      await onDeleteEvent(event.id);
                     }
                   }}
                   className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -378,11 +397,15 @@ const EventsView: React.FC<EventsViewProps> = ({
 
                   <button
                     onClick={handleSaveEvent}
-                    disabled={!eventFormData.name || !eventFormData.startDate || !eventFormData.startTime}
+                    disabled={!eventFormData.name || !eventFormData.startDate || !eventFormData.startTime || isSavingEvent}
                     className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CalendarDays size={18} />
-                    {editingEvent ? 'Save Changes' : 'Schedule Event'}
+                    {isSavingEvent ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <CalendarDays size={18} />
+                    )}
+                    {isSavingEvent ? 'Saving...' : (editingEvent ? 'Save Changes' : 'Schedule Event')}
                   </button>
                 </div>
               </div>
@@ -459,11 +482,15 @@ const EventsView: React.FC<EventsViewProps> = ({
 
                   <button
                     onClick={handleAddAttendance}
-                    disabled={!newRecord.memberName}
+                    disabled={!newRecord.memberName || isSavingAttendance}
                     className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <CheckCircle size={18} />
-                    Confirm Attendance
+                    {isSavingAttendance ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <CheckCircle size={18} />
+                    )}
+                    {isSavingAttendance ? 'Confirming...' : 'Confirm Attendance'}
                   </button>
                 </div>
               </div>
