@@ -3,16 +3,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 export async function generateOutreachMessage(memberName: string, daysAbsent: number): Promise<string> {
   try {
-    // Check if API key is configured
-    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY ||
-      (process as any).env?.GEMINI_API_KEY ||
-      (process as any).env?.API_KEY || '';
-
-    if (!apiKey) {
+    // Check if API key is configured (basic check)
+    if (!process.env.VITE_GEMINI_API_KEY && !process.env.API_KEY) {
       throw new Error("No API Key configured");
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: process.env.VITE_GEMINI_API_KEY || process.env.API_KEY || '' });
 
     const response = await ai.models.generateContent({
       model: 'gemini-1.5-flash',

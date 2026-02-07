@@ -7,7 +7,7 @@ import { Contribution, Member, ContributionType } from '../types';
 interface FinancesViewProps {
   contributions: Contribution[];
   members: Member[];
-  onAddContribution: (contribution: Contribution) => Promise<void>;
+  onAddContribution: (contribution: Contribution) => void;
 }
 
 const FinancesView: React.FC<FinancesViewProps> = ({ contributions, members, onAddContribution }) => {
@@ -69,35 +69,25 @@ const FinancesView: React.FC<FinancesViewProps> = ({ contributions, members, onA
     return Array.from(years).sort((a: number, b: number) => b - a);
   }, [contributions]);
 
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleAddEntry = async () => {
+  const handleAddEntry = () => {
     if (!newEntry.memberName || !newEntry.amount) return;
-    setIsSaving(true);
 
-    try {
-      const entry = {
-        id: `T${Date.now()}`,
-        memberName: newEntry.memberName,
-        amount: parseFloat(newEntry.amount),
-        type: newEntry.type,
-        date: newEntry.date
-      };
+    const entry = {
+      id: `T${Date.now()}`,
+      memberName: newEntry.memberName,
+      amount: parseFloat(newEntry.amount),
+      type: newEntry.type,
+      date: newEntry.date
+    };
 
-      await onAddContribution(entry);
-      setIsModalOpen(false);
-      setNewEntry({
-        memberName: '',
-        amount: '',
-        type: ContributionType.TITHE,
-        date: new Date().toISOString().split('T')[0]
-      });
-    } catch (error) {
-      console.error("Failed to add contribution:", error);
-      alert("Failed to add contribution. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
+    onAddContribution(entry);
+    setIsModalOpen(false);
+    setNewEntry({
+      memberName: '',
+      amount: '',
+      type: ContributionType.TITHE,
+      date: new Date().toISOString().split('T')[0]
+    });
   };
 
   const filteredContributions = useMemo(() => {
@@ -325,15 +315,11 @@ const FinancesView: React.FC<FinancesViewProps> = ({ contributions, members, onA
 
               <button
                 onClick={handleAddEntry}
-                disabled={!newEntry.memberName || !newEntry.amount || isSaving}
+                disabled={!newEntry.memberName || !newEntry.amount}
                 className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSaving ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <PlusCircle size={18} />
-                )}
-                {isSaving ? 'Saving...' : 'Confirm Entry'}
+                <PlusCircle size={18} />
+                Confirm Entry
               </button>
             </div>
           </div>

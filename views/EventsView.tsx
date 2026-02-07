@@ -11,10 +11,10 @@ interface EventsViewProps {
   events: Event[];
   attendance: AttendanceRecord[];
   members: Member[];
-  onAddAttendance: (record: AttendanceRecord) => Promise<void>;
-  onAddEvent: (event: Event) => Promise<void>;
-  onEditEvent: (event: Event) => Promise<void>;
-  onDeleteEvent: (id: string) => Promise<void>;
+  onAddAttendance: (record: AttendanceRecord) => void;
+  onAddEvent: (event: Event) => void;
+  onEditEvent: (event: Event) => void;
+  onDeleteEvent: (id: string) => void;
 }
 
 const EventsView: React.FC<EventsViewProps> = ({
@@ -95,30 +95,21 @@ const EventsView: React.FC<EventsViewProps> = ({
     setIsEventModalOpen(true);
   };
 
-  const [isSavingEvent, setIsSavingEvent] = useState(false);
-
-  const handleSaveEvent = async () => {
+  const handleSaveEvent = () => {
     if (!eventFormData.name || !eventFormData.date) return;
-    setIsSavingEvent(true);
-    try {
-      if (editingEvent) {
-        await onEditEvent({
-          ...editingEvent,
-          ...eventFormData
-        });
-      } else {
-        await onAddEvent({
-          id: `E${Date.now()}`,
-          ...eventFormData
-        });
-      }
-      setIsEventModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save event:", error);
-      alert("Failed to save event. Please try again.");
-    } finally {
-      setIsSavingEvent(false);
+
+    if (editingEvent) {
+      onEditEvent({
+        ...editingEvent,
+        ...eventFormData
+      });
+    } else {
+      onAddEvent({
+        id: `E${Date.now()}`,
+        ...eventFormData
+      });
     }
+    setIsEventModalOpen(false);
   };
 
   const handleOpenAttendance = (eventId: string) => {
@@ -126,36 +117,26 @@ const EventsView: React.FC<EventsViewProps> = ({
     setIsAttendanceModalOpen(true);
   };
 
-  const [isSavingAttendance, setIsSavingAttendance] = useState(false);
-
-  const handleAddAttendance = async () => {
+  const handleAddAttendance = () => {
     if (!newRecord.memberName || !selectedEventId) return;
-    setIsSavingAttendance(true);
 
-    try {
-      const event = events.find(e => e.id === selectedEventId);
+    const event = events.find(e => e.id === selectedEventId);
 
-      const record = {
-        date: event?.date || new Date().toISOString().split('T')[0],
-        eventName: event?.name || 'Unknown Event',
-        memberName: newRecord.memberName,
-        status: newRecord.status
-      };
+    const record = {
+      date: event?.date || new Date().toISOString().split('T')[0],
+      eventName: event?.name || 'Unknown Event',
+      memberName: newRecord.memberName,
+      status: newRecord.status
+    };
 
-      await onAddAttendance(record);
-      setIsAttendanceModalOpen(false);
-      setNewRecord({
-        memberName: '',
-        status: AttendanceStatus.PRESENT
-      });
-      // Switch to logs tab to see the entry
-      setActiveTab('attendance');
-    } catch (error) {
-      console.error("Failed to add attendance:", error);
-      alert("Failed to add attendance. Please try again.");
-    } finally {
-      setIsSavingAttendance(false);
-    }
+    onAddAttendance(record);
+    setIsAttendanceModalOpen(false);
+    setNewRecord({
+      memberName: '',
+      status: AttendanceStatus.PRESENT
+    });
+    // Switch to logs tab to see the entry
+    setActiveTab('attendance');
   };
 
   const handleExport = (format: 'csv' | 'excel' | 'pdf') => {
@@ -266,9 +247,9 @@ const EventsView: React.FC<EventsViewProps> = ({
                   <Edit2 size={14} /> Edit
                 </button>
                 <button
-                  onClick={async () => {
+                  onClick={() => {
                     if (window.confirm('Are you sure you want to delete this event?')) {
-                      await onDeleteEvent(event.id);
+                      onDeleteEvent(event.id);
                     }
                   }}
                   className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -397,15 +378,11 @@ const EventsView: React.FC<EventsViewProps> = ({
 
                   <button
                     onClick={handleSaveEvent}
-                    disabled={!eventFormData.name || !eventFormData.startDate || !eventFormData.startTime || isSavingEvent}
+                    disabled={!eventFormData.name || !eventFormData.startDate || !eventFormData.startTime}
                     className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSavingEvent ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <CalendarDays size={18} />
-                    )}
-                    {isSavingEvent ? 'Saving...' : (editingEvent ? 'Save Changes' : 'Schedule Event')}
+                    <CalendarDays size={18} />
+                    {editingEvent ? 'Save Changes' : 'Schedule Event'}
                   </button>
                 </div>
               </div>
@@ -482,15 +459,11 @@ const EventsView: React.FC<EventsViewProps> = ({
 
                   <button
                     onClick={handleAddAttendance}
-                    disabled={!newRecord.memberName || isSavingAttendance}
+                    disabled={!newRecord.memberName}
                     className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSavingAttendance ? (
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <CheckCircle size={18} />
-                    )}
-                    {isSavingAttendance ? 'Confirming...' : 'Confirm Attendance'}
+                    <CheckCircle size={18} />
+                    Confirm Attendance
                   </button>
                 </div>
               </div>

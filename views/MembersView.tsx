@@ -11,9 +11,9 @@ interface MembersViewProps {
   contributions: Contribution[];
   communities: Community[];
 
-  onAddMember: (member: Member) => Promise<void>;
-  onEditMember: (member: Member) => Promise<void>;
-  onDeleteMember: (id: string) => Promise<void>;
+  onAddMember: (member: Member) => void;
+  onEditMember: (member: Member) => void;
+  onDeleteMember: (id: string) => void;
 }
 
 const MembersView: React.FC<MembersViewProps> = ({
@@ -43,8 +43,7 @@ const MembersView: React.FC<MembersViewProps> = ({
     address: '',
     passportPhotoUrl: '',
     assignedCommunity: '',
-    status: MemberStatus.VISITOR,
-    joinDate: new Date().toISOString().split('T')[0]
+    status: MemberStatus.VISITOR
   });
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; memberId: string | null; memberName: string | null }>({
@@ -94,9 +93,9 @@ const MembersView: React.FC<MembersViewProps> = ({
     setShowExportMenu(false);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (deleteConfirmation.memberId) {
-      await onDeleteMember(deleteConfirmation.memberId);
+      onDeleteMember(deleteConfirmation.memberId);
       setDeleteConfirmation({ isOpen: false, memberId: null, memberName: null });
     }
   };
@@ -111,8 +110,7 @@ const MembersView: React.FC<MembersViewProps> = ({
         address: member.address || '',
         passportPhotoUrl: member.passportPhotoUrl || '',
         assignedCommunity: member.assignedCommunity || '',
-        status: member.status,
-        joinDate: member.joinDate || new Date().toISOString().split('T')[0]
+        status: member.status
       });
       setActiveMenuId(null); // Close menu
     } else {
@@ -124,46 +122,36 @@ const MembersView: React.FC<MembersViewProps> = ({
         address: '',
         passportPhotoUrl: '',
         assignedCommunity: '',
-        status: MemberStatus.VISITOR,
-        joinDate: new Date().toISOString().split('T')[0]
+        status: MemberStatus.VISITOR
       });
     }
     setIsModalOpen(true);
   };
 
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleSaveMember = async () => {
+  const handleSaveMember = () => {
     if (!newMember.fullName) return;
-    setIsSaving(true);
 
-    try {
-      if (editingMember) {
-        await onEditMember({
-          ...editingMember,
-          ...newMember
-        });
-      } else {
-        const member = {
-          id: `M${Date.now()}`,
-          fullName: newMember.fullName,
-          email: newMember.email,
-          phone: newMember.phone,
-          address: newMember.address,
-          passportPhotoUrl: newMember.passportPhotoUrl,
-          assignedCommunity: newMember.assignedCommunity,
-          status: newMember.status,
-          joinDate: newMember.joinDate
-        };
-        await onAddMember(member);
-      }
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save member:", error);
-      alert("Failed to save member. Please try again.");
-    } finally {
-      setIsSaving(false);
+    if (editingMember) {
+      onEditMember({
+        ...editingMember,
+        ...newMember
+      });
+    } else {
+      const member = {
+        id: `M${Date.now()}`,
+        fullName: newMember.fullName,
+        email: newMember.email,
+        phone: newMember.phone,
+        address: newMember.address,
+        passportPhotoUrl: newMember.passportPhotoUrl,
+        assignedCommunity: newMember.assignedCommunity,
+        status: newMember.status,
+        joinDate: new Date().toISOString().split('T')[0]
+      };
+      onAddMember(member);
     }
+
+    setIsModalOpen(false);
   };
 
   const processedMembers = useMemo(() => {
@@ -390,27 +378,13 @@ const MembersView: React.FC<MembersViewProps> = ({
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Join Date</label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  value={newMember.joinDate}
-                  onChange={(e) => setNewMember({ ...newMember, joinDate: e.target.value })}
-                />
-              </div>
-
               <button
                 onClick={handleSaveMember}
-                disabled={!newMember.fullName || isSaving}
+                disabled={!newMember.fullName}
                 className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSaving ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <UserPlus size={18} />
-                )}
-                {isSaving ? 'Saving...' : (editingMember ? 'Save Changes' : 'Register Member')}
+                <UserPlus size={18} />
+                {editingMember ? 'Save Changes' : 'Register Member'}
               </button>
             </div>
           </div>
@@ -512,7 +486,6 @@ const MembersView: React.FC<MembersViewProps> = ({
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Community</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Attendance</th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Join Date</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Giving YTD</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider"></th>
               </tr>
@@ -571,9 +544,6 @@ const MembersView: React.FC<MembersViewProps> = ({
                     <td className="px-6 py-4 text-center">
                       <div className="text-sm font-semibold text-slate-800">{m.attendanceFrequency}</div>
                       <div className="text-[10px] text-slate-400 uppercase">Visits</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-slate-600">{m.joinDate || '-'}</div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="text-sm font-semibold text-slate-800">Tshs {m.totalContributionYTD?.toLocaleString()}</div>

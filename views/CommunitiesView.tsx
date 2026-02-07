@@ -6,9 +6,9 @@ import { Community, Member } from '../types';
 interface CommunitiesViewProps {
   communities: Community[];
   members: Member[];
-  onAddCommunity: (community: Community) => Promise<void>;
-  onEditCommunity: (community: Community) => Promise<void>;
-  onDeleteCommunity: (id: string) => Promise<void>;
+  onAddCommunity: (community: Community) => void;
+  onEditCommunity: (community: Community) => void;
+  onDeleteCommunity: (id: string) => void;
 }
 
 const CommunitiesView: React.FC<CommunitiesViewProps> = ({
@@ -51,31 +51,21 @@ const CommunitiesView: React.FC<CommunitiesViewProps> = ({
     setIsModalOpen(true);
   };
 
-  const [isSaving, setIsSaving] = React.useState(false);
-
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!formData.name || !formData.hostName) return;
-    setIsSaving(true);
 
-    try {
-      if (editingCommunity) {
-        await onEditCommunity({
-          ...editingCommunity,
-          ...formData
-        });
-      } else {
-        await onAddCommunity({
-          id: `C${Date.now()}`,
-          ...formData,
-        });
-      }
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Failed to save community:", error);
-      alert("Failed to save community. Please try again.");
-    } finally {
-      setIsSaving(false);
+    if (editingCommunity) {
+      onEditCommunity({
+        ...editingCommunity,
+        ...formData
+      });
+    } else {
+      onAddCommunity({
+        id: `C${Date.now()}`,
+        ...formData,
+      });
     }
+    setIsModalOpen(false);
   };
   const communities = useMemo(() => {
     return initialCommunities.map(c => {
@@ -158,9 +148,9 @@ const CommunitiesView: React.FC<CommunitiesViewProps> = ({
                     <Edit2 size={16} />
                   </button>
                   <button
-                    onClick={async () => {
+                    onClick={() => {
                       if (window.confirm('Are you sure you want to delete this community?')) {
-                        await onDeleteCommunity(c.id);
+                        onDeleteCommunity(c.id);
                       }
                     }}
                     className="p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
@@ -250,15 +240,11 @@ const CommunitiesView: React.FC<CommunitiesViewProps> = ({
 
               <button
                 onClick={handleSave}
-                disabled={!formData.name || !formData.hostName || isSaving}
+                disabled={!formData.name || !formData.hostName}
                 className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSaving ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <Plus size={18} />
-                )}
-                {isSaving ? 'Saving...' : (editingCommunity ? 'Save Changes' : 'Create Group')}
+                <Plus size={18} />
+                {editingCommunity ? 'Save Changes' : 'Create Group'}
               </button>
             </div>
           </div>
