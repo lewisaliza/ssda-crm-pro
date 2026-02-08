@@ -43,7 +43,8 @@ const MembersView: React.FC<MembersViewProps> = ({
     address: '',
     passportPhotoUrl: '',
     assignedCommunity: '',
-    status: MemberStatus.VISITOR
+    status: MemberStatus.VISITOR,
+    joinDate: new Date().toISOString().split('T')[0]
   });
 
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; memberId: string | null; memberName: string | null }>({
@@ -85,6 +86,7 @@ const MembersView: React.FC<MembersViewProps> = ({
         { header: 'Email', dataKey: 'Email' },
         { header: 'Status', dataKey: 'Status' },
         { header: 'Community', dataKey: 'Community' },
+        { header: 'Join Date', dataKey: 'JoinDate' },
         { header: 'Visits', dataKey: 'Attendance' },
         { header: 'Giving', dataKey: 'TotalGiving' }
       ];
@@ -110,7 +112,8 @@ const MembersView: React.FC<MembersViewProps> = ({
         address: member.address || '',
         passportPhotoUrl: member.passportPhotoUrl || '',
         assignedCommunity: member.assignedCommunity || '',
-        status: member.status
+        status: member.status,
+        joinDate: member.joinDate || new Date().toISOString().split('T')[0]
       });
       setActiveMenuId(null); // Close menu
     } else {
@@ -122,7 +125,8 @@ const MembersView: React.FC<MembersViewProps> = ({
         address: '',
         passportPhotoUrl: '',
         assignedCommunity: '',
-        status: MemberStatus.VISITOR
+        status: MemberStatus.VISITOR,
+        joinDate: new Date().toISOString().split('T')[0]
       });
     }
     setIsModalOpen(true);
@@ -146,7 +150,7 @@ const MembersView: React.FC<MembersViewProps> = ({
         passportPhotoUrl: newMember.passportPhotoUrl,
         assignedCommunity: newMember.assignedCommunity,
         status: newMember.status,
-        joinDate: new Date().toISOString().split('T')[0]
+        joinDate: newMember.joinDate
       };
       onAddMember(member);
     }
@@ -378,6 +382,16 @@ const MembersView: React.FC<MembersViewProps> = ({
                 </select>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Join Date</label>
+                <input
+                  type="date"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  value={newMember.joinDate}
+                  onChange={(e) => setNewMember({ ...newMember, joinDate: e.target.value })}
+                />
+              </div>
+
               <button
                 onClick={handleSaveMember}
                 disabled={!newMember.fullName}
@@ -486,6 +500,7 @@ const MembersView: React.FC<MembersViewProps> = ({
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Community</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Attendance</th>
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Join Date</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Giving YTD</th>
                 <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider"></th>
               </tr>
@@ -544,6 +559,9 @@ const MembersView: React.FC<MembersViewProps> = ({
                     <td className="px-6 py-4 text-center">
                       <div className="text-sm font-semibold text-slate-800">{m.attendanceFrequency}</div>
                       <div className="text-[10px] text-slate-400 uppercase">Visits</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-slate-600">{m.joinDate || '-'}</div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="text-sm font-semibold text-slate-800">Tshs {m.totalContributionYTD?.toLocaleString()}</div>

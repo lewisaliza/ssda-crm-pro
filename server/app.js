@@ -182,7 +182,7 @@ app.post('/api/members', authenticateToken, async (req, res) => {
     const { id, fullName, phone, email, address, passportPhotoUrl, status, assignedCommunity, joinDate } = req.body;
     try {
         const { rows } = await query(
-            'INSERT INTO members (id, fullName, phone, email, address, passportPhotoUrl, status, assignedCommunity, joinDate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, fullname as "fullName", phone, email, address, passportphotourl as "passportPhotoUrl", status, assignedcommunity as "assignedCommunity", joindate as "joinDate"',
+            'INSERT INTO members (id, fullname, phone, email, address, passportphotourl, status, assignedcommunity, joindate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, fullname as "fullName", phone, email, address, passportphotourl as "passportPhotoUrl", status, assignedcommunity as "assignedCommunity", joindate as "joinDate"',
             [id, fullName, phone, email, address, passportPhotoUrl, status, assignedCommunity, joinDate]
         );
         res.json(rows[0]);
@@ -196,7 +196,7 @@ app.put('/api/members/:id', authenticateToken, async (req, res) => {
     const { fullName, phone, email, address, passportPhotoUrl, status, assignedCommunity, joinDate } = req.body;
     try {
         const { rows } = await query(
-            'UPDATE members SET fullName=$1, phone=$2, email=$3, address=$4, passportPhotoUrl=$5, status=$6, assignedCommunity=$7, joinDate=$8 WHERE id=$9 RETURNING id, fullname as "fullName", phone, email, address, passportphotourl as "passportPhotoUrl", status, assignedcommunity as "assignedCommunity", joindate as "joinDate"',
+            'UPDATE members SET fullname=$1, phone=$2, email=$3, address=$4, passportphotourl=$5, status=$6, assignedcommunity=$7, joindate=$8 WHERE id=$9 RETURNING id, fullname as "fullName", phone, email, address, passportphotourl as "passportPhotoUrl", status, assignedcommunity as "assignedCommunity", joindate as "joinDate"',
             [fullName, phone, email, address, passportPhotoUrl, status, assignedCommunity, joinDate, id]
         );
         res.json(rows[0]);
